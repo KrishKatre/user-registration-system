@@ -3,6 +3,7 @@
     const bcrypt = require("bcrypt");
     const jwt = require("jsonwebtoken");
     const cors = require("cors");
+    const puppeteer = require("puppeteer");
     const bodyParser = require("body-parser");
     const tokenBlacklist = new Set();
     require("dotenv").config({path: "./key.env"});
@@ -35,10 +36,39 @@
         priority: { type: Number, required: true, min: 1, max: 10 },
         requestDate: { type: Date, required: true, default: Date.now },
         requiredByDate: { type: Date, required: true },
+        imageUrl: { type: String, required: false },
     });
     
     const ProductRequest = mongoose.model("ProductRequest", productRequestSchema);
     
+    const fetchProductImage = async (url) => {
+        try {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+    
+            // Navigate to the URL
+            await page.goto(url, { waitUntil: "load", timeout: 0 });
+    
+            // Extract the product image URL (adjust selector based on the website)
+            const imageUrl = await page.evaluate(() => {
+                const imgElement = document.querySelector("img"); // Adjust selector to match product image
+                return imgElement ? imgElement.src : null;
+            });
+    
+            await browser.close();
+    
+            if (imageUrl) {
+                console.log("Product Image URL:", imageUrl);
+                return imageUrl;
+            } else {
+                throw new Error("Product image not found.");
+            }
+        } catch (error) {
+            console.error("Error fetching product image:", error);
+            return null;
+        }
+    };
+
     const SECRET_KEY = process.env.SECRET_KEY;
 
     // Routes
@@ -155,13 +185,18 @@
             if (!productUrl || !priority || !requiredByDate) {
                 return res.status(400).json({ error: "All fields are required." });
             }
-    
+            
+            const imageUrl = await fetchProductImage(productUrl);
+            if (!imageUrl) {
+                return res.status(404).json({ error: "Product image not found." });
+            }
             // Create and save the product request
             const productRequest = new ProductRequest({
                 productUrl,
                 priority,
                 requestDate: requestDate || new Date(),
                 requiredByDate,
+                imageUrl,
             });
     
             await productRequest.save();
@@ -227,6 +262,40 @@
             res.status(500).json({ error: "Internal server error." });
         }
     });
+
+    app.post("/fetch-product-image", async (req, res) => {
+        const { productUrl } = req.body;
+    
+        if (!productUrl) {
+            return res.status(400).json({ error: "Product URL is required." });
+        }
+    
+        try {
+            // Launch Puppeteer and fetch the product image
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+    
+            await page.goto(productUrl, { waitUntil: "load", timeout: 0 });
+    
+            // Adjust selector for the product image
+            const imageUrl = await page.evaluate(() => {
+                const imgElement = document.querySelector("img"); // Update this selector as needed
+                return imgElement ? imgElement.src : null;
+            });
+    
+            await browser.close();
+    
+            if (imageUrl) {
+                return res.status(200).json({ imageUrl });
+            } else {
+                return res.status(404).json({ error: "Product image not found." });
+            }
+        } catch (error) {
+            console.error("Error scraping product image:", error);
+            res.status(500).json({ error: "Failed to fetch product image." });
+        }
+    });
+    
     
     
     
