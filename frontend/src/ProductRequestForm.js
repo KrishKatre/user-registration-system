@@ -30,14 +30,38 @@ const ProductRequestForm = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+    
         if (!validate()) return;
-
-        // Submit the form data (add your API call logic here)
-        console.log("Form submitted:", formData);
-        alert("Product request submitted successfully!");
+    
+        try {
+            const response = await fetch("http://localhost:5000/product-request", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+    
+            if (response.ok) {
+                alert("Product request submitted successfully!");
+                setFormData({
+                    productUrl: "",
+                    priority: "",
+                    requestDate: new Date().toISOString().split("T")[0],
+                    requiredByDate: "",
+                });
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.error || "An error occurred."}`);
+            }
+        } catch (error) {
+            console.error("Error submitting product request:", error);
+            alert("An error occurred while submitting the request.");
+        }
     };
+    
 
     return (
         <form onSubmit={handleSubmit} style={{ maxWidth: "500px", margin: "auto" }}>
