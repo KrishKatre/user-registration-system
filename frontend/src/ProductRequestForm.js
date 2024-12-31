@@ -32,9 +32,13 @@ const ProductRequestForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        if (!validate()) return;
-    
+        console.log("Form submitted");
+        if (!validate()) {
+            console.log("Form validation failed");
+            return;
+        } 
+        
+        console.log("Validation passed, formData:", formData);
         try {
             const response = await fetch("http://localhost:5000/product-request", {
                 method: "POST",
@@ -43,6 +47,8 @@ const ProductRequestForm = () => {
                 },
                 body: JSON.stringify(formData),
             });
+
+            console.log("Fetch response:", response);
     
             if (response.ok) {
                 alert("Product request submitted successfully!");

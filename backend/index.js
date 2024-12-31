@@ -2,6 +2,7 @@
     const mongoose = require("mongoose");
     const bcrypt = require("bcrypt");
     const jwt = require("jsonwebtoken");
+    const cors = require("cors");
     const bodyParser = require("body-parser");
     const tokenBlacklist = new Set();
     require("dotenv").config({path: "./key.env"});
@@ -12,7 +13,7 @@
 
     // Middleware
     app.use(express.json());
-
+    app.use(cors());
     // MongoDB Connection
     mongoose
         .connect("mongodb://127.0.0.1:27017/user_registration")
@@ -28,6 +29,16 @@
     });
 
     const User = mongoose.model("User", userSchema);
+    
+    const productRequestSchema = new mongoose.Schema({
+        productUrl: { type: String, required: true },
+        priority: { type: Number, required: true, min: 1, max: 10 },
+        requestDate: { type: Date, required: true, default: Date.now },
+        requiredByDate: { type: Date, required: true },
+    });
+    
+    const ProductRequest = mongoose.model("ProductRequest", productRequestSchema);
+    
     const SECRET_KEY = process.env.SECRET_KEY;
 
     // Routes
@@ -134,6 +145,92 @@
     app.get("/protected", authenticateJWT, (req, res) => {
         res.status(200).json({ message: `Hello, ${req.user.username}. Welcome to the protected route!` });
     });
+
+    app.post("/product-request", async (req, res) => {
+        console.log(req.body);
+        try {
+            const { productUrl, priority, requestDate, requiredByDate } = req.body;
+    
+            // Validate input
+            if (!productUrl || !priority || !requiredByDate) {
+                return res.status(400).json({ error: "All fields are required." });
+            }
+    
+            // Create and save the product request
+            const productRequest = new ProductRequest({
+                productUrl,
+                priority,
+                requestDate: requestDate || new Date(),
+                requiredByDate,
+            });
+    
+            await productRequest.save();
+            res.status(201).json({ message: "Product request created successfully!", productRequest });
+        } catch (error) {
+            console.error("Error creating product request:", error);
+            res.status(500).json({ error: "Internal server error." });
+        }
+    });
+
+    app.get("/product-requests", async (req, res) => {
+        try {
+            const productRequests = await ProductRequest.find();
+            res.status(200).json(productRequests);
+        } catch (error) {
+            console.error("Error fetching product requests:", error);
+            res.status(500).json({ error: "Internal server error." });
+        }
+    });
+
+    app.put("/product-request/:id", async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { productUrl, priority, requiredByDate } = req.body;
+    
+            // Validate input
+            if (!productUrl || !priority || !requiredByDate) {
+                return res.status(400).json({ error: "All fields are required." });
+            }
+    
+            // Find and update the product request
+            const updatedRequest = await ProductRequest.findByIdAndUpdate(
+                id,
+                { productUrl, priority, requiredByDate },
+                { new: true, runValidators: true } // Return the updated document and validate the data
+            );
+    
+            if (!updatedRequest) {
+                return res.status(404).json({ error: "Product request not found." });
+            }
+    
+            res.status(200).json({ message: "Product request updated successfully!", updatedRequest });
+        } catch (error) {
+            console.error("Error updating product request:", error);
+            res.status(500).json({ error: "Internal server error." });
+        }
+    });
+
+    app.delete("/product-request/:id", async (req, res) => {
+        try {
+            const { id } = req.params;
+    
+            // Find and delete the product request
+            const deletedRequest = await ProductRequest.findByIdAndDelete(id);
+    
+            if (!deletedRequest) {
+                return res.status(404).json({ error: "Product request not found." });
+            }
+    
+            res.status(200).json({ message: "Product request deleted successfully!" });
+        } catch (error) {
+            console.error("Error deleting product request:", error);
+            res.status(500).json({ error: "Internal server error." });
+        }
+    });
+    
+    
+    
+    
 
 
 
