@@ -4,7 +4,7 @@ const ProductRequestForm = () => {
     const [formData, setFormData] = useState({
         productUrl: "",
         priority: "",
-        requestDate: new Date().toISOString().split("T")[0], // Auto-filled with today's date
+        requestDate: new Date().toLocaleDateString("en-CA"), // Formats date as YYYY-MM-DD
         requiredByDate: "",
     });
 
@@ -40,10 +40,12 @@ const ProductRequestForm = () => {
         
         console.log("Validation passed, formData:", formData);
         try {
+            const token = localStorage.getItem("authToken");
             const response = await fetch("http://localhost:5000/product-request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(formData),
             });
@@ -52,12 +54,12 @@ const ProductRequestForm = () => {
     
             if (response.ok) {
                 alert("Product request submitted successfully!");
-                setFormData({
+                setFormData((prev) => ({
                     productUrl: "",
                     priority: "",
-                    requestDate: new Date().toISOString().split("T")[0],
+                    requestDate: prev.requestDate,
                     requiredByDate: "",
-                });
+                }));
             } else {
                 const errorData = await response.json();
                 alert(`Error: ${errorData.error || "An error occurred."}`);

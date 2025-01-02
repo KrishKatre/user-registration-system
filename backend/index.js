@@ -37,6 +37,7 @@
         requestDate: { type: Date, required: true, default: Date.now },
         requiredByDate: { type: Date, required: true },
         imageUrl: { type: String, required: false },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to User
     });
     
     const ProductRequest = mongoose.model("ProductRequest", productRequestSchema);
@@ -144,24 +145,33 @@
 
     // Protected Route Example
     const authenticateJWT = (req, res, next) => {
-        const token = req.headers.authorization?.split(" ")[1]; // Extract the token from the Authorization header
-
-        if (!token) {
+        const authHeader = req.headers.authorization; // Get the Authorization header
+        console.log("Authorization header:", authHeader); // Debugging log
+    
+        if (!authHeader) {
+            console.log("No Authorization header provided");
             return res.status(401).json({ error: "Access denied. No token provided." });
         }
-
+    
+        const token = authHeader.split(" ")[1]; // Extract the token
+        console.log("Extracted token:", token); // Debugging log
+    
         if (tokenBlacklist.has(token)) {
-            return res.status(403).json({error: "Token has been invalidated. Please log in again."});
+            console.log("Token has been invalidated");
+            return res.status(403).json({ error: "Token has been invalidated. Please log in again." });
         }
-
+    
         try {
-            const decoded = jwt.verify(token, SECRET_KEY);
-            req.user = decoded; // Attach user info to the request object
-            next(); // Proceed to the next middleware or route handler
+            const decoded = jwt.verify(token, SECRET_KEY); // Verify the token
+            console.log("Decoded token:", decoded); // Should include `id` and `username`
+            req.user = decoded; // Attach the decoded payload to `req.user`
+            next();
         } catch (err) {
+            console.error("JWT verification failed:", err);
             res.status(403).json({ error: "Invalid or expired token." });
         }
     };
+    
 
     app.post("/logout", authenticateJWT, (req, res) => {
         const token = req.headers.authorization?.split(" ")[1];
@@ -176,7 +186,8 @@
         res.status(200).json({ message: `Hello, ${req.user.username}. Welcome to the protected route!` });
     });
 
-    app.post("/product-request", async (req, res) => {
+    app.post("/product-request", authenticateJWT,async (req, res) => {
+        console.log("Authenticated user:", req.user); // Debugging log
         console.log(req.body);
         try {
             const { productUrl, priority, requestDate, requiredByDate } = req.body;
@@ -186,6 +197,12 @@
                 return res.status(400).json({ error: "All fields are required." });
             }
             
+            // Convert requestDate and requiredByDate to UTC to prevent timezone shift
+            const adjustedRequestDate = new Date(requestDate);
+            adjustedRequestDate.setMinutes(adjustedRequestDate.getMinutes() - adjustedRequestDate.getTimezoneOffset());
+
+            const adjustedRequiredByDate = new Date(requiredByDate);
+            adjustedRequiredByDate.setMinutes(adjustedRequiredByDate.getMinutes() - adjustedRequiredByDate.getTimezoneOffset());
             const imageUrl = await fetchProductImage(productUrl);
             if (!imageUrl) {
                 return res.status(404).json({ error: "Product image not found." });
@@ -197,6 +214,7 @@
                 requestDate: requestDate || new Date(),
                 requiredByDate,
                 imageUrl,
+                userId: req.user.id,
             });
     
             await productRequest.save();
@@ -207,15 +225,19 @@
         }
     });
 
-    app.get("/product-requests", async (req, res) => {
+    app.get("/product-requests", authenticateJWT, async (req, res) => {
+        console.log("Authenticated user for fetching requests:", req.user); // Debugging log
+    
         try {
-            const productRequests = await ProductRequest.find();
+            const productRequests = await ProductRequest.find({ userId: req.user.id });
+            console.log("Fetched product requests:", productRequests); // Debugging log
             res.status(200).json(productRequests);
         } catch (error) {
-            console.error("Error fetching product requests:", error);
+            console.error("Error fetching product requests:", error); // Log detailed error
             res.status(500).json({ error: "Internal server error." });
         }
     });
+    
 
     app.put("/product-request/:id", async (req, res) => {
         try {

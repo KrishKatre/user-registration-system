@@ -10,7 +10,20 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch("http://localhost:5000/product-requests");
+                const token = localStorage.getItem("authToken"); // Retrieve token from localStorage
+    
+                const response = await fetch("http://localhost:5000/product-requests", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`, // Include token in the Authorization header
+                    },
+                });
+    
+                if (!response.ok) {
+                    throw new Error("Failed to fetch product requests");
+                }
+    
                 const data = await response.json();
                 setProductRequests(data);
                 setFilteredRequests(data); // Initially, filteredRequests = productRequests
@@ -18,9 +31,10 @@ const Dashboard = () => {
                 console.error("Error fetching product requests:", error);
             }
         };
-
+    
         fetchData();
     }, []);
+    
 
     // Apply sorting and filtering whenever productRequests, sortOption, or filterPriority changes
     useEffect(() => {
@@ -45,6 +59,14 @@ const Dashboard = () => {
 
         setFilteredRequests(updatedRequests);
     }, [productRequests, sortOption, filterPriority]);
+
+    // Function to format dates in the local timezone as YYYY-MM-DD
+    const formatDate = (date) => {
+        const localDate = new Date(date);
+        localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset()); // Adjust back to local timezone
+        return localDate.toLocaleDateString("en-CA"); // Format as YYYY-MM-DD
+    };
+    
 
     return (
         <div style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}>
@@ -101,12 +123,8 @@ const Dashboard = () => {
                                 </a>
                             </td>
                             <td style={styles.cell}>{request.priority}</td>
-                            <td style={styles.cell}>
-                                {new Date(request.requestDate).toLocaleDateString()}
-                            </td>
-                            <td style={styles.cell}>
-                                {new Date(request.requiredByDate).toLocaleDateString()}
-                            </td>
+                            <td style={styles.cell}>{formatDate(request.requestDate)}</td>
+                            <td style={styles.cell}>{formatDate(request.requiredByDate)}</td>
                         </tr>
                     ))}
                 </tbody>

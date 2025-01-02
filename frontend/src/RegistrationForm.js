@@ -8,6 +8,7 @@ const RegistrationForm = () => {
     });
 
     const [errors, setErrors] = useState({});
+    const [successMessage, setSuccessMessage] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -18,13 +19,11 @@ const RegistrationForm = () => {
         let valid = true;
         const newErrors = {};
 
-        // Check if username is empty
         if (!formData.username.trim()) {
             newErrors.username = "Username is required.";
             valid = false;
         }
 
-        // Check if email is valid
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = "Email is required.";
@@ -34,7 +33,6 @@ const RegistrationForm = () => {
             valid = false;
         }
 
-        // Check if password is empty
         if (!formData.password) {
             newErrors.password = "Password is required.";
             valid = false;
@@ -47,19 +45,38 @@ const RegistrationForm = () => {
         return valid;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validate()) {
-            console.log("Form submitted successfully:", formData);
-            // Clear the form
-            setFormData({ username: "", email: "", password: "" });
-            setErrors({});
+        if (!validate()) return;
+
+        try {
+            const response = await fetch("http://localhost:5000/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSuccessMessage("Registration successful! You can now log in.");
+                setFormData({ username: "", email: "", password: "" });
+                setErrors({});
+            } else {
+                setErrors({ form: data.error || "Registration failed." });
+            }
+        } catch (error) {
+            setErrors({ form: "Something went wrong. Please try again later." });
         }
     };
 
     return (
         <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "auto" }}>
             <h2>User Registration</h2>
+            {errors.form && <p style={{ color: "red" }}>{errors.form}</p>}
+            {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
             <div>
                 <label htmlFor="username">Username:</label>
                 <input

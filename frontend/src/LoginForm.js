@@ -1,63 +1,58 @@
 import React, { useState } from "react";
 
 const LoginForm = () => {
-    const [formData, setFormData] = useState({ usernameOrEmail: "", password: "" });
+    const [formData, setFormData] = useState({
+        usernameOrEmail: "",
+        password: "",
+    });
+
     const [errors, setErrors] = useState({});
-    const [serverError, setServerError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const validate = () => {
-        let valid = true;
-        const newErrors = {};
-
-        // Validate username/email
-        if (!formData.usernameOrEmail.trim()) {
-            newErrors.usernameOrEmail = "Username or email is required.";
-            valid = false;
-        }
-
-        // Validate password
-        if (!formData.password.trim()) {
-            newErrors.password = "Password is required.";
-            valid = false;
-        }
-
-        setErrors(newErrors);
-        return valid;
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!validate()) return;
-
-        // Simulate server-side validation
+    
+        if (!formData.usernameOrEmail || !formData.password) {
+            setErrors({ form: "All fields are required." });
+            return;
+        }
+    
         try {
             const response = await fetch("http://localhost:5000/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify(formData),
             });
-
-            const result = await response.json();
+    
+            const data = await response.json();
+    
             if (response.ok) {
-                alert("Login successful!");
+                localStorage.setItem("authToken", data.token); // Save token to localStorage
+                setSuccessMessage("Login successful!");
+                setErrors({});
+                // Redirect to dashboard
+                window.location.href = "/dashboard";
             } else {
-                setServerError(result.error || "Invalid credentials.");
+                setErrors({ form: data.error || "Login failed." });
             }
-        } catch (err) {
-            setServerError("An error occurred. Please try again.");
+        } catch (error) {
+            setErrors({ form: "Something went wrong. Please try again later." });
         }
     };
+    
 
     return (
         <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "auto" }}>
-            <h2>Login</h2>
-
+            <h2>User Login</h2>
+            {errors.form && <p style={{ color: "red" }}>{errors.form}</p>}
+            {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
             <div>
                 <label htmlFor="usernameOrEmail">Username or Email:</label>
                 <input
@@ -67,7 +62,6 @@ const LoginForm = () => {
                     value={formData.usernameOrEmail}
                     onChange={handleChange}
                 />
-                {errors.usernameOrEmail && <p style={{ color: "red" }}>{errors.usernameOrEmail}</p>}
             </div>
 
             <div>
@@ -79,10 +73,7 @@ const LoginForm = () => {
                     value={formData.password}
                     onChange={handleChange}
                 />
-                {errors.password && <p style={{ color: "red" }}>{errors.password}</p>}
             </div>
-
-            {serverError && <p style={{ color: "red" }}>{serverError}</p>}
 
             <button type="submit">Login</button>
         </form>
