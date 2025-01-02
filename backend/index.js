@@ -249,25 +249,28 @@
     
     
 
-    app.put("/product-request/:id", async (req, res) => {
+    app.put("/product-request/:id", authenticateJWT, async (req, res) => {
         try {
             const { id } = req.params;
-            const { productUrl, priority, requiredByDate } = req.body;
+            const { priority, requiredByDate } = req.body;
     
             // Validate input
-            if (!productUrl || !priority || !requiredByDate) {
-                return res.status(400).json({ error: "All fields are required." });
+            if (!priority || priority < 1 || priority > 10) {
+                return res.status(400).json({ error: "Priority must be a number between 1 and 10." });
+            }
+            if (!requiredByDate) {
+                return res.status(400).json({ error: "Required-by date is required." });
             }
     
             // Find and update the product request
-            const updatedRequest = await ProductRequest.findByIdAndUpdate(
-                id,
-                { productUrl, priority, requiredByDate },
-                { new: true, runValidators: true } // Return the updated document and validate the data
+            const updatedRequest = await ProductRequest.findOneAndUpdate(
+                { _id: id, userId: req.user.id }, // Ensure the user owns the request
+                { priority, requiredByDate }, // Update only editable fields
+                { new: true, runValidators: true } // Return the updated document and validate input
             );
     
             if (!updatedRequest) {
-                return res.status(404).json({ error: "Product request not found." });
+                return res.status(404).json({ error: "Product request not found or access denied." });
             }
     
             res.status(200).json({ message: "Product request updated successfully!", updatedRequest });
@@ -276,7 +279,7 @@
             res.status(500).json({ error: "Internal server error." });
         }
     });
-
+    
     app.delete("/product-request/:id", async (req, res) => {
         try {
             const { id } = req.params;
