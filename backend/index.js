@@ -226,17 +226,27 @@
     });
 
     app.get("/product-requests", authenticateJWT, async (req, res) => {
-        console.log("Authenticated user for fetching requests:", req.user); // Debugging log
+        const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
     
         try {
-            const productRequests = await ProductRequest.find({ userId: req.user.id });
-            console.log("Fetched product requests:", productRequests); // Debugging log
-            res.status(200).json(productRequests);
+            const totalRequests = await ProductRequest.countDocuments({ userId: req.user.id });
+            const productRequests = await ProductRequest.find({ userId: req.user.id })
+                .sort({ requestDate: -1 }) // Sort by request date (newest first)
+                .skip((page - 1) * limit) // Skip documents for previous pages
+                .limit(parseInt(limit)); // Limit the number of documents fetched
+    
+            res.status(200).json({
+                totalRequests,
+                totalPages: Math.ceil(totalRequests / limit),
+                currentPage: parseInt(page),
+                productRequests,
+            });
         } catch (error) {
-            console.error("Error fetching product requests:", error); // Log detailed error
+            console.error("Error fetching product requests:", error);
             res.status(500).json({ error: "Internal server error." });
         }
     });
+    
     
 
     app.put("/product-request/:id", async (req, res) => {

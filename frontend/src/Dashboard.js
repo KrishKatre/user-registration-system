@@ -3,40 +3,46 @@ import React, { useEffect, useState } from "react";
 const Dashboard = () => {
     const [productRequests, setProductRequests] = useState([]);
     const [filteredRequests, setFilteredRequests] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [sortOption, setSortOption] = useState("priority"); // Default sorting by priority
     const [filterPriority, setFilterPriority] = useState(""); // Filter by priority
+    const itemsPerPage = 5; // Number of items per page
 
-    // Fetch data from the backend when the component mounts
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = localStorage.getItem("authToken"); // Retrieve token from localStorage
-    
-                const response = await fetch("http://localhost:5000/product-requests", {
+    // Fetch data from the backend with pagination
+    const fetchData = async (page) => {
+        try {
+            const token = localStorage.getItem("authToken"); // Retrieve token from localStorage
+
+            const response = await fetch(
+                `http://localhost:5000/product-requests?page=${page}&limit=${itemsPerPage}`,
+                {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`, // Include token in the Authorization header
                     },
-                });
-    
-                if (!response.ok) {
-                    throw new Error("Failed to fetch product requests");
                 }
-    
-                const data = await response.json();
-                setProductRequests(data);
-                setFilteredRequests(data); // Initially, filteredRequests = productRequests
-            } catch (error) {
-                console.error("Error fetching product requests:", error);
-            }
-        };
-    
-        fetchData();
-    }, []);
-    
+            );
 
-    // Apply sorting and filtering whenever productRequests, sortOption, or filterPriority changes
+            if (!response.ok) {
+                throw new Error("Failed to fetch product requests");
+            }
+
+            const data = await response.json();
+            setProductRequests(data.productRequests);
+            setTotalPages(data.totalPages);
+        } catch (error) {
+            console.error("Error fetching product requests:", error);
+        }
+    };
+
+    // Fetch data for the current page
+    useEffect(() => {
+        fetchData(currentPage);
+    }, [currentPage]);
+
+    // Apply sorting and filtering dynamically
     useEffect(() => {
         let updatedRequests = [...productRequests];
 
@@ -66,7 +72,12 @@ const Dashboard = () => {
         localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset()); // Adjust back to local timezone
         return localDate.toLocaleDateString("en-CA"); // Format as YYYY-MM-DD
     };
-    
+
+    const handlePageChange = (page) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
 
     return (
         <div style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}>
@@ -129,6 +140,19 @@ const Dashboard = () => {
                     ))}
                 </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                    Previous
+                </button>
+                <span style={{ margin: "0 10px" }}>
+                    Page {currentPage} of {totalPages}
+                </span>
+                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                    Next
+                </button>
+            </div>
         </div>
     );
 };
