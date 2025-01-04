@@ -1,5 +1,21 @@
 import React, { useEffect, useState } from "react";
 import UpdateRequestForm from "./UpdateRequestForm";
+import {
+    Box,
+    Button,
+    Pagination,
+    Select,
+    MenuItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Typography,
+    Paper,
+} from "@mui/material";
 
 const Dashboard = () => {
     const [productRequests, setProductRequests] = useState([]);
@@ -7,7 +23,7 @@ const Dashboard = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [sortOption, setSortOption] = useState("priority");
     const [filterPriority, setFilterPriority] = useState("");
-    const [selectedRequest, setSelectedRequest] = useState(null); // Selected request for update
+    const [selectedRequest, setSelectedRequest] = useState(null);
     const itemsPerPage = 5;
 
     // Fetch data from the backend with pagination, sorting, and filtering
@@ -19,7 +35,7 @@ const Dashboard = () => {
                 page,
                 limit: itemsPerPage,
                 sort,
-                ...(filter ? { filterPriority: filter } : {}), // Include filter only if set
+                ...(filter ? { filterPriority: filter } : {}),
             });
 
             const response = await fetch(
@@ -68,7 +84,7 @@ const Dashboard = () => {
                 }
                 return response.json();
             })
-            .then((data) => {
+            .then(() => {
                 alert("Product request updated successfully!");
                 setSelectedRequest(null);
                 fetchData(currentPage, sortOption, filterPriority); // Refresh data
@@ -85,13 +101,15 @@ const Dashboard = () => {
         return localDate.toLocaleDateString("en-CA");
     };
 
-    const handlePageChange = (newPage) => {
-        setCurrentPage(newPage);
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
     };
 
     return (
-        <div style={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}>
-            <h2>Product Requests Dashboard</h2>
+        <Box sx={{ padding: "20px", maxWidth: "1000px", margin: "auto" }}>
+            <Typography variant="h4" gutterBottom>
+                Product Requests Dashboard
+            </Typography>
 
             {selectedRequest ? (
                 <UpdateRequestForm
@@ -102,105 +120,117 @@ const Dashboard = () => {
             ) : (
                 <>
                     {/* Sorting and Filtering Controls */}
-                    <div style={{ marginBottom: "20px" }}>
-                        <label>
-                            Sort By:
-                            <select
-                                value={sortOption}
-                                onChange={(e) => setSortOption(e.target.value)}
-                            >
-                                <option value="priority">Priority</option>
-                                <option value="requestDate">Request Date</option>
-                                <option value="requiredByDate">Required-by Date</option>
-                            </select>
-                        </label>
-                        <label style={{ marginLeft: "20px" }}>
-                            Filter By Priority:
-                            <input
-                                type="number"
-                                min="1"
-                                max="10"
-                                value={filterPriority}
-                                onChange={(e) => setFilterPriority(e.target.value)}
-                            />
-                        </label>
-                        <button onClick={() => setFilterPriority("")} style={{ marginLeft: "10px" }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 2,
+                        }}
+                    >
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Box>
+                                <Typography variant="body1">Sort By:</Typography>
+                                <Select
+                                    value={sortOption}
+                                    onChange={(e) => setSortOption(e.target.value)}
+                                    size="small"
+                                >
+                                    <MenuItem value="priority">Priority</MenuItem>
+                                    <MenuItem value="requestDate">Request Date</MenuItem>
+                                    <MenuItem value="requiredByDate">Required-by Date</MenuItem>
+                                </Select>
+                            </Box>
+                            <Box>
+                                <Typography variant="body1">Filter By Priority:</Typography>
+                                <TextField
+                                    type="number"
+                                    value={filterPriority}
+                                    onChange={(e) => setFilterPriority(e.target.value)}
+                                    size="small"
+                                    placeholder="Priority"
+                                    inputProps={{ min: 1, max: 10 }}
+                                />
+                            </Box>
+                        </Box>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={() => setFilterPriority("")}
+                        >
                             Clear Filter
-                        </button>
-                    </div>
+                        </Button>
+                    </Box>
 
                     {/* Table to Display Product Requests */}
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Product URL</th>
-                                <th>Priority</th>
-                                <th>Request Date</th>
-                                <th>Required-by Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {productRequests.map((request) => (
-                                <tr key={request._id}>
-                                    <td>
-                                        <img
-                                            src={request.imageUrl}
-                                            alt="Product"
-                                            style={{ width: "100px", height: "auto" }}
-                                        />
-                                    </td>
-                                    <td>
-                                        <a
-                                            href={request.productUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {request.productUrl}
-                                        </a>
-                                    </td>
-                                    <td>{request.priority}</td>
-                                    <td>{formatDate(request.requestDate)}</td>
-                                    <td>{formatDate(request.requiredByDate)}</td>
-                                    <td>
-                                        <button onClick={() => setSelectedRequest(request)}>
-                                            Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Image</TableCell>
+                                    <TableCell>Product URL</TableCell>
+                                    <TableCell>Priority</TableCell>
+                                    <TableCell>Request Date</TableCell>
+                                    <TableCell>Required-by Date</TableCell>
+                                    <TableCell>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {productRequests.map((request) => (
+                                    <TableRow key={request._id}>
+                                        <TableCell>
+                                            <img
+                                                src={request.imageUrl}
+                                                alt="Product"
+                                                style={{ width: "100px", height: "auto" }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <a
+                                                href={request.productUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {request.productUrl}
+                                            </a>
+                                        </TableCell>
+                                        <TableCell>{request.priority}</TableCell>
+                                        <TableCell>{formatDate(request.requestDate)}</TableCell>
+                                        <TableCell>{formatDate(request.requiredByDate)}</TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={() => setSelectedRequest(request)}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
 
                     {/* Pagination Controls */}
-                    <div
-                        style={{
-                            marginTop: "20px",
+                    <Box
+                        sx={{
+                            marginTop: 2,
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
                         }}
                     >
-                        <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Previous
-                        </button>
-                        <span style={{ margin: "0 10px" }}>
-                            Page {currentPage} of {totalPages}
-                        </span>
-                        <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </button>
-                    </div>
+                        <Pagination
+                            count={totalPages}
+                            page={currentPage}
+                            onChange={handlePageChange}
+                            color="primary"
+                        />
+                    </Box>
                 </>
             )}
-        </div>
+        </Box>
     );
 };
 
