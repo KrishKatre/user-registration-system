@@ -9,6 +9,7 @@ const ProductRequestForm = () => {
     });
 
     const [errors, setErrors] = useState({});
+    const [serverError, setServerError] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,7 +38,7 @@ const ProductRequestForm = () => {
             console.log("Form validation failed");
             return;
         } 
-        
+        setServerError("");
         console.log("Validation passed, formData:", formData);
         try {
             const token = localStorage.getItem("authToken");
@@ -65,7 +66,8 @@ const ProductRequestForm = () => {
                 alert(`Error: ${errorData.error || "An error occurred."}`);
             }
         } catch (error) {
-            console.error("Error submitting product request:", error);
+            console.error("Error submitting product request:", error.message);
+            setServerError(error.message);
             alert("An error occurred while submitting the request.");
         }
     };
@@ -125,7 +127,7 @@ const ProductRequestForm = () => {
                     <p style={{ color: "red" }}>{errors.requiredByDate}</p>
                 )}
             </div>
-
+            {serverError && <p style={{ color: "red", marginTop: "10px" }}>{serverError}</p>}
             <button type="submit">Submit Request</button>
         </form>
     );

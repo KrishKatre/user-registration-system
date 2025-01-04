@@ -10,12 +10,20 @@ const Dashboard = () => {
     const [selectedRequest, setSelectedRequest] = useState(null); // Selected request for update
     const itemsPerPage = 5;
 
-    const fetchData = async (page) => {
+    // Fetch data from the backend with pagination, sorting, and filtering
+    const fetchData = async (page, sort = "priority", filter = "") => {
         try {
             const token = localStorage.getItem("authToken");
 
+            const queryParams = new URLSearchParams({
+                page,
+                limit: itemsPerPage,
+                sort,
+                ...(filter ? { filterPriority: filter } : {}), // Include filter only if set
+            });
+
             const response = await fetch(
-                `http://localhost:5000/product-requests?page=${page}&limit=${itemsPerPage}`,
+                `http://localhost:5000/product-requests?${queryParams.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -37,10 +45,12 @@ const Dashboard = () => {
         }
     };
 
+    // Fetch data whenever the current page, sort option, or filter changes
     useEffect(() => {
-        fetchData(currentPage);
-    }, [currentPage]);
+        fetchData(currentPage, sortOption, filterPriority);
+    }, [currentPage, sortOption, filterPriority]);
 
+    // Handle update of a product request
     const handleUpdate = (updatedRequest) => {
         const token = localStorage.getItem("authToken");
 
@@ -61,7 +71,7 @@ const Dashboard = () => {
             .then((data) => {
                 alert("Product request updated successfully!");
                 setSelectedRequest(null);
-                fetchData(currentPage); // Refresh data
+                fetchData(currentPage, sortOption, filterPriority); // Refresh data
             })
             .catch((error) => {
                 console.error("Error updating product request:", error);
@@ -73,6 +83,10 @@ const Dashboard = () => {
         const localDate = new Date(date);
         localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
         return localDate.toLocaleDateString("en-CA");
+    };
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
     };
 
     return (
@@ -87,6 +101,34 @@ const Dashboard = () => {
                 />
             ) : (
                 <>
+                    {/* Sorting and Filtering Controls */}
+                    <div style={{ marginBottom: "20px" }}>
+                        <label>
+                            Sort By:
+                            <select
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                            >
+                                <option value="priority">Priority</option>
+                                <option value="requestDate">Request Date</option>
+                                <option value="requiredByDate">Required-by Date</option>
+                            </select>
+                        </label>
+                        <label style={{ marginLeft: "20px" }}>
+                            Filter By Priority:
+                            <input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={filterPriority}
+                                onChange={(e) => setFilterPriority(e.target.value)}
+                            />
+                        </label>
+                        <button onClick={() => setFilterPriority("")} style={{ marginLeft: "10px" }}>
+                            Clear Filter
+                        </button>
+                    </div>
+
                     {/* Table to Display Product Requests */}
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead>
@@ -130,6 +172,32 @@ const Dashboard = () => {
                             ))}
                         </tbody>
                     </table>
+
+                    {/* Pagination Controls */}
+                    <div
+                        style={{
+                            marginTop: "20px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                        <span style={{ margin: "0 10px" }}>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
                 </>
             )}
         </div>

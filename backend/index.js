@@ -226,26 +226,41 @@
     });
 
     app.get("/product-requests", authenticateJWT, async (req, res) => {
-        const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
-    
         try {
-            const totalRequests = await ProductRequest.countDocuments({ userId: req.user.id });
-            const productRequests = await ProductRequest.find({ userId: req.user.id })
-                .sort({ requestDate: -1 }) // Sort by request date (newest first)
-                .skip((page - 1) * limit) // Skip documents for previous pages
-                .limit(parseInt(limit)); // Limit the number of documents fetched
+            const { page = 1, limit = 5, sort = "priority", filterPriority } = req.query;
+            const userId = req.user.id; // Extract the user's ID from the JWT
+    
+            // Build the query object
+            const query = { userId }; // Only fetch requests for the authenticated user
+            if (filterPriority) {
+                query.priority = parseInt(filterPriority); // Filter by priority if provided
+            }
+    
+            // Calculate pagination
+            const options = {
+                skip: (page - 1) * limit, // Skip documents for previous pages
+                limit: parseInt(limit), // Limit the number of documents per page
+                sort: { [sort]: 1 }, // Sort by the specified field (ascending order)
+            };
+    
+            // Fetch product requests from the database
+            const productRequests = await ProductRequest.find(query, null, options);
+    
+            // Get the total count of requests (for pagination)
+            const totalRequests = await ProductRequest.countDocuments(query);
+            const totalPages = Math.ceil(totalRequests / limit);
     
             res.status(200).json({
-                totalRequests,
-                totalPages: Math.ceil(totalRequests / limit),
-                currentPage: parseInt(page),
                 productRequests,
+                currentPage: parseInt(page),
+                totalPages,
             });
         } catch (error) {
             console.error("Error fetching product requests:", error);
             res.status(500).json({ error: "Internal server error." });
         }
     });
+    
     
     
 
