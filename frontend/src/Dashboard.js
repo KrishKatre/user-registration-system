@@ -39,7 +39,7 @@ const Dashboard = () => {
             });
 
             const response = await fetch(
-                `http://localhost:5000/product-requests?${queryParams.toString()}`,
+                `https://user-registration-backend-4.onrender.com/product-requests?${queryParams.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -70,7 +70,7 @@ const Dashboard = () => {
     const handleUpdate = (updatedRequest) => {
         const token = localStorage.getItem("authToken");
 
-        fetch(`http://localhost:5000/product-request/${updatedRequest._id}`, {
+        fetch(`https://user-registration-backend-4.onrender.com/product-request/${updatedRequest._id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

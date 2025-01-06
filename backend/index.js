@@ -6,7 +6,7 @@
     const puppeteer = require("puppeteer");
     const bodyParser = require("body-parser");
     const tokenBlacklist = new Set();
-    require("dotenv").config();
+    require("dotenv").config({path: "/usr/src/app/.env"});
 
     // Initialize Express
     const app = express();
@@ -18,7 +18,7 @@
     // MongoDB Connection
     mongoose
         .connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true , serverSelectionTimeoutMS: 5000})
-        .then(() => console.log("Connected to MongoDB"))
+        .then(() => console.log("Connected to MongoDB Atlas"))
         .catch((err) => console.error("Error connecting to MongoDB:", err));
 
 
@@ -27,7 +27,8 @@
         username: { type: String, required: true, unique: true },
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-    });
+    }, 
+    { collection: "users" }); // Set the collection name to "users);
 
     const User = mongoose.model("User", userSchema);
     
@@ -44,15 +45,29 @@
     
     const fetchProductImage = async (url) => {
         try {
-            const browser = await puppeteer.launch();
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu'
+                ],
+                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
+            });
+    
             const page = await browser.newPage();
     
             // Navigate to the URL
             await page.goto(url, { waitUntil: "load", timeout: 0 });
     
-            // Extract the product image URL (adjust selector based on the website)
+            // Extract the product image URL
             const imageUrl = await page.evaluate(() => {
-                const imgElement = document.querySelector("img"); // Adjust selector to match product image
+                const imgElement = document.querySelector("img"); // Update selector as needed
                 return imgElement ? imgElement.src : null;
             });
     
@@ -69,6 +84,7 @@
             return null;
         }
     };
+    
 
     const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -95,7 +111,7 @@
             // Save the user
             const newUser = new User({ username, email, password: hashedPassword });
             await newUser.save();
-
+            console.log("User saved:", newUser);
             res.status(201).json({ message: "User registered successfully." });
         } catch (err) {
             console.error("Error during registration:", err);
@@ -322,7 +338,13 @@
     
         try {
             // Launch Puppeteer and fetch the product image
-            const browser = await puppeteer.launch();
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote'],
+                executablePath: process.env.NODE_ENV == "production"
+                ? process.env.PUPPETEER_EXECUTABLE_PATH
+                : puppeteer.executablePath(),
+            });
             const page = await browser.newPage();
     
             await page.goto(productUrl, { waitUntil: "load", timeout: 0 });
@@ -336,6 +358,7 @@
             await browser.close();
     
             if (imageUrl) {
+                console.log("Product Image URL:", imageUrl);
                 return res.status(200).json({ imageUrl });
             } else {
                 return res.status(404).json({ error: "Product image not found." });

@@ -42,7 +42,7 @@ const ProductRequestForm = () => {
         console.log("Validation passed, formData:", formData);
         try {
             const token = localStorage.getItem("authToken");
-            const response = await fetch("http://localhost:5000/product-request", {
+            const response = await fetch("https://user-registration-backend-4.onrender.com/product-request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
