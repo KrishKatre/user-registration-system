@@ -19,7 +19,8 @@
     mongoose
         .connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true , serverSelectionTimeoutMS: 5000})
         .then(() => console.log("Connected to MongoDB Atlas"))
-        .catch((err) => console.error("Error connecting to MongoDB:", err));
+        .catch((err) => {console.error("Error connecting to MongoDB:", err);
+                        console.error(err);});
 
 
     // User Schema and Model
