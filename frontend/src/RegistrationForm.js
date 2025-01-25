@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-
+import {
+    Container,
+    Box,
+    TextField,
+    Button,
+    Typography,
+    Alert,
+    Paper,
+} from "@mui/material";
 const RegistrationForm = () => {
     const [formData, setFormData] = useState({
         username: "",
@@ -73,48 +81,61 @@ const RegistrationForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "auto" }}>
-            <h2>User Registration</h2>
-            {errors.form && <p style={{ color: "red" }}>{errors.form}</p>}
-            {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
-            <div>
-                <label htmlFor="username">Username:</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                />
-                {errors.username && <p style={{ color: "red" }}>{errors.username}</p>}
-            </div>
-
-            <div>
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                />
-                {errors.email && <p style={{ color: "red" }}>{errors.email}</p>}
-            </div>
-
-            <div>
-                <label htmlFor="password">Password:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                />
-                {errors.password && <p style={{ color: "red" }}>{errors.password}</p>}
-            </div>
-
-            <button type="submit">Register</button>
-        </form>
+        <Container maxWidth="sm">
+            <Paper elevation={3} sx={{ padding: 4, mt: 4 }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    User Registration
+                </Typography>
+                {errors.form && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {errors.form}
+                    </Alert>
+                )}
+                {successMessage && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {successMessage}
+                    </Alert>
+                )}
+                <form onSubmit={handleSubmit}>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                        <TextField
+                            label="Username"
+                            variant="outlined"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            error={Boolean(errors.username)}
+                            helperText={errors.username}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Email"
+                            variant="outlined"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            error={Boolean(errors.email)}
+                            helperText={errors.email}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Password"
+                            variant="outlined"
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            error={Boolean(errors.password)}
+                            helperText={errors.password}
+                            fullWidth
+                        />
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            Register
+                        </Button>
+                    </Box>
+                </form>
+            </Paper>
+        </Container>
     );
 };
 

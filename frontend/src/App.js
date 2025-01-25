@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { AppBar, Toolbar, Button, Typography, Box } from "@mui/material";
 import RegistrationForm from "./RegistrationForm";
 import LoginForm from "./LoginForm";
 import ProductRequestForm from "./ProductRequestForm";
@@ -9,25 +10,43 @@ import ProtectedRoute from "./ProtectedRoute";
 const App = () => {
     const isLoggedIn = Boolean(localStorage.getItem("authToken")); // Check if token exists
 
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        window.location.href = "/login";
+    };
+
     return (
         <Router>
-            <nav style={styles.navbar}>
-                <Link to="/" style={styles.link}>Register</Link>
-                {!isLoggedIn && <Link to="/login" style={styles.link}>Login</Link>}
-                {isLoggedIn && <Link to="/product-request" style={styles.link}>Product Request</Link>}
-                {isLoggedIn && <Link to="/dashboard" style={styles.link}>Dashboard</Link>}
-                {isLoggedIn && (
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem("authToken");
-                            window.location.href = "/login";
-                        }}
-                        style={{ ...styles.link, background: "none", border: "none", cursor: "pointer" }}
-                    >
-                        Logout
-                    </button>
-                )}
-            </nav>
+            <AppBar position="static" color="primary">
+                <Toolbar>
+                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                        Product Request System
+                    </Typography>
+                    <Box>
+                        <Button component={Link} to="/" color="inherit">
+                            Register
+                        </Button>
+                        {!isLoggedIn && (
+                            <Button component={Link} to="/login" color="inherit">
+                                Login
+                            </Button>
+                        )}
+                        {isLoggedIn && (
+                            <>
+                                <Button component={Link} to="/product-request" color="inherit">
+                                    Product Request
+                                </Button>
+                                <Button component={Link} to="/dashboard" color="inherit">
+                                    Dashboard
+                                </Button>
+                                <Button onClick={handleLogout} color="inherit">
+                                    Logout
+                                </Button>
+                            </>
+                        )}
+                    </Box>
+                </Toolbar>
+            </AppBar>
 
             <Routes>
                 <Route path="/" element={<RegistrationForm />} />
@@ -51,20 +70,6 @@ const App = () => {
             </Routes>
         </Router>
     );
-};
-
-const styles = {
-    navbar: {
-        padding: "10px",
-        backgroundColor: "#f4f4f4",
-        marginBottom: "20px",
-    },
-    link: {
-        marginRight: "15px",
-        textDecoration: "none",
-        color: "#007BFF",
-        fontWeight: "bold",
-    },
 };
 
 export default App;

@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-
+import {
+    Container,
+    Box,
+    TextField,
+    Button,
+    Typography,
+    Alert,
+    Paper
+} from "@mui/material";
 const ProductRequestForm = () => {
     const [formData, setFormData] = useState({
         productUrl: "",
@@ -74,62 +82,69 @@ const ProductRequestForm = () => {
     
 
     return (
-        <form onSubmit={handleSubmit} style={{ maxWidth: "500px", margin: "auto" }}>
-            <h2>Product Request Form</h2>
-
-            <div>
-                <label htmlFor="productUrl">Product URL:</label>
-                <input
-                    type="url"
-                    id="productUrl"
-                    name="productUrl"
-                    value={formData.productUrl}
-                    onChange={handleChange}
-                />
-                {errors.productUrl && <p style={{ color: "red" }}>{errors.productUrl}</p>}
-            </div>
-
-            <div>
-                <label htmlFor="priority">Priority (1-10):</label>
-                <input
-                    type="number"
-                    id="priority"
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleChange}
-                    min="1"
-                    max="10"
-                />
-                {errors.priority && <p style={{ color: "red" }}>{errors.priority}</p>}
-            </div>
-
-            <div>
-                <label htmlFor="requestDate">Request Date:</label>
-                <input
-                    type="date"
-                    id="requestDate"
-                    name="requestDate"
-                    value={formData.requestDate}
-                    readOnly
-                />
-            </div>
-
-            <div>
-                <label htmlFor="requiredByDate">Required-By Date:</label>
-                <input
-                    type="date"
-                    id="requiredByDate"
-                    name="requiredByDate"
-                    value={formData.requiredByDate}
-                    onChange={handleChange}
-                />
-                {errors.requiredByDate && (
-                    <p style={{ color: "red" }}>{errors.requiredByDate}</p>
+        <Container maxWidth="sm">
+            <Paper elevation={3} sx={{ padding: 4, mt: 4 }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Product Request Form
+                </Typography>
+                {serverError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {serverError}
+                    </Alert>
                 )}
-            </div>
-            {serverError && <p style={{ color: "red", marginTop: "10px" }}>{serverError}</p>}
-            <button type="submit">Submit Request</button>
-        </form>
+                <form onSubmit={handleSubmit}>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                        <TextField
+                            label="Product URL"
+                            variant="outlined"
+                            name="productUrl"
+                            value={formData.productUrl}
+                            onChange={handleChange}
+                            error={Boolean(errors.productUrl)}
+                            helperText={errors.productUrl}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Priority (1-10)"
+                            variant="outlined"
+                            type="number"
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleChange}
+                            error={Boolean(errors.priority)}
+                            helperText={errors.priority}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Request Date"
+                            variant="outlined"
+                            type="date"
+                            name="requestDate"
+                            value={formData.requestDate}
+                            InputProps={{ readOnly: true }}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Required-By Date"
+                            variant="outlined"
+                            type="date"
+                            name="requiredByDate"
+                            value={formData.requiredByDate}
+                            onChange={handleChange}
+                            error={Boolean(errors.requiredByDate)}
+                            helperText={errors.requiredByDate}
+                            InputLabelProps={{
+                                shrink: true, // Ensure the label doesn't overlap
+                            }}
+                            fullWidth
+                        />
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            Submit Request
+                        </Button>
+                    </Box>
+                </form>
+            </Paper>
+        </Container>
     );
 };
 

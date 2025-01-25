@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-
+import {
+    Container,
+    Box,
+    TextField,
+    Button,
+    Typography,
+    Alert,
+    Grid2,
+    Paper
+} from "@mui/material";
 const LoginForm = () => {
     const [formData, setFormData] = useState({
         usernameOrEmail: "",
@@ -49,35 +58,59 @@ const LoginForm = () => {
     
 
     return (
-        <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "auto" }}>
-            <h2>User Login</h2>
-            {errors.form && <p style={{ color: "red" }}>{errors.form}</p>}
-            {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
-            <div>
-                <label htmlFor="usernameOrEmail">Username or Email:</label>
-                <input
-                    type="text"
-                    id="usernameOrEmail"
-                    name="usernameOrEmail"
-                    value={formData.usernameOrEmail}
-                    onChange={handleChange}
-                />
-            </div>
-
-            <div>
-                <label htmlFor="password">Password:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                />
-            </div>
-
-            <button type="submit">Login</button>
-        </form>
+        <Container maxWidth="xs">
+            <Paper elevation={3} sx={{ padding: 4, mt: 4 }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Login
+                </Typography>
+                {errors.form && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {errors.form}
+                    </Alert>
+                )}
+                {successMessage && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {successMessage}
+                    </Alert>
+                )}
+                <form onSubmit={handleSubmit}>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                        <TextField
+                            label="Username or Email"
+                            variant="outlined"
+                            name="usernameOrEmail"
+                            value={formData.usernameOrEmail}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Password"
+                            type="password"
+                            variant="outlined"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                        >
+                            Login
+                        </Button>
+                    </Box>
+                </form>
+                <Grid2 container justifyContent="center" mt={2}>
+                    <Typography variant="body2">
+                        Don't have an account? <a href="/">Register</a>
+                    </Typography>
+                </Grid2>
+            </Paper>
+        </Container>
     );
 };
+
 
 export default LoginForm;

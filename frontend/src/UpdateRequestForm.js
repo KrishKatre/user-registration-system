@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-
+import {
+    Container,
+    Box,
+    TextField,
+    Button,
+    Typography,
+    Paper,
+    Alert
+} from "@mui/material";
 const UpdateRequestForm = ({ currentRequest, onUpdate, onCancel }) => {
     const [formData, setFormData] = useState({
         priority: currentRequest.priority,
@@ -32,44 +40,57 @@ const UpdateRequestForm = ({ currentRequest, onUpdate, onCancel }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ maxWidth: "500px", margin: "auto" }}>
-            <h2>Update Product Request</h2>
-
-            <div>
-                <label htmlFor="priority">Priority (1-10):</label>
-                <input
-                    type="number"
-                    id="priority"
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleChange}
-                    min="1"
-                    max="10"
-                />
-                {errors.priority && <p style={{ color: "red" }}>{errors.priority}</p>}
-            </div>
-
-            <div>
-                <label htmlFor="requiredByDate">Required-By Date:</label>
-                <input
-                    type="date"
-                    id="requiredByDate"
-                    name="requiredByDate"
-                    value={formData.requiredByDate}
-                    onChange={handleChange}
-                />
-                {errors.requiredByDate && (
-                    <p style={{ color: "red" }}>{errors.requiredByDate}</p>
+        <Container maxWidth="sm">
+            <Paper elevation={3} sx={{ padding: 4, mt: 4 }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Update Product Request
+                </Typography>
+                {Object.values(errors).length > 0 && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {Object.values(errors).join(" \n")}
+                    </Alert>
                 )}
-            </div>
-
-            <div style={{ marginTop: "20px" }}>
-                <button type="submit">Update</button>
-                <button type="button" onClick={onCancel} style={{ marginLeft: "10px" }}>
-                    Cancel
-                </button>
-            </div>
-        </form>
+                <form onSubmit={handleSubmit}>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                        <TextField
+                            label="Priority (1-10)"
+                            variant="outlined"
+                            type="number"
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleChange}
+                            error={Boolean(errors.priority)}
+                            helperText={errors.priority}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Required-By Date"
+                            variant="outlined"
+                            type="date"
+                            name="requiredByDate"
+                            value={formData.requiredByDate}
+                            onChange={handleChange}
+                            error={Boolean(errors.requiredByDate)}
+                            helperText={errors.requiredByDate}
+                            fullWidth
+                        />
+                        <Box display="flex" justifyContent="space-between" mt={2}>
+                            <Button type="submit" variant="contained" color="primary">
+                                Update
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outlined"
+                                color="secondary"
+                                onClick={onCancel}
+                            >
+                                Cancel
+                            </Button>
+                        </Box>
+                    </Box>
+                </form>
+            </Paper>
+        </Container>
     );
 };
 
