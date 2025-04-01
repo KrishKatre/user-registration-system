@@ -1,134 +1,111 @@
 import React, { useState } from "react";
 import {
     Container,
-    Box,
-    TextField,
-    Button,
-    Typography,
-    Alert,
     Paper,
+    Typography,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    FormControlLabel,
+    Radio,
+    RadioGroup,
+    Checkbox,
+    Button,
+    Box
 } from "@mui/material";
+
+const shelters = ["Shelter A", "Shelter B", "Shelter C"];
+
 const RegistrationForm = () => {
     const [formData, setFormData] = useState({
         username: "",
         email: "",
         password: "",
+        phone: "",
+        associatedWithShelter: "no",
+        selectedShelter: "",
+        hasHMISID: "no",
+        hmsId: "",
+        age: "",
+        gender: "",
+        ethnicity: "",
+        veteran: false,
+        disability: false
     });
 
-    const [errors, setErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState("");
-
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value
+        }));
     };
 
-    const validate = () => {
-        let valid = true;
-        const newErrors = {};
-
-        if (!formData.username.trim()) {
-            newErrors.username = "Username is required.";
-            valid = false;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!formData.email.trim()) {
-            newErrors.email = "Email is required.";
-            valid = false;
-        } else if (!emailRegex.test(formData.email)) {
-            newErrors.email = "Enter a valid email address.";
-            valid = false;
-        }
-
-        if (!formData.password) {
-            newErrors.password = "Password is required.";
-            valid = false;
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters.";
-            valid = false;
-        }
-
-        setErrors(newErrors);
-        return valid;
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if (!validate()) return;
-
-        try {
-            const response = await fetch("https://user-registration-backend-4.onrender.com/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setSuccessMessage("Registration successful! You can now log in.");
-                setFormData({ username: "", email: "", password: "" });
-                setErrors({});
-            } else {
-                setErrors({ form: data.error || "Registration failed." });
-            }
-        } catch (error) {
-            setErrors({ form: "Something went wrong. Please try again later." });
-        }
+        console.log("Submitting:", formData);
+        // Add your registration logic here
     };
 
     return (
         <Container maxWidth="sm">
-            <Paper elevation={3} sx={{ padding: 4, mt: 4 }}>
-                <Typography variant="h4" align="center" gutterBottom>
-                    User Registration
+            <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+                <Typography variant="h4" gutterBottom align="center">
+                    Homeless Registration
                 </Typography>
-                {errors.form && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {errors.form}
-                    </Alert>
-                )}
-                {successMessage && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        {successMessage}
-                    </Alert>
-                )}
                 <form onSubmit={handleSubmit}>
                     <Box display="flex" flexDirection="column" gap={2}>
-                        <TextField
-                            label="Username"
-                            variant="outlined"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            error={Boolean(errors.username)}
-                            helperText={errors.username}
-                            fullWidth
+                        <TextField label="Username" name="username" value={formData.username} onChange={handleChange} required />
+                        <TextField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                        <TextField label="Password" name="password" type="password" value={formData.password} onChange={handleChange} required />
+                        <TextField label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} required />
+
+                        <Typography variant="subtitle1">Are you associated with a shelter?</Typography>
+                        <RadioGroup row name="associatedWithShelter" value={formData.associatedWithShelter} onChange={handleChange}>
+                            <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                            <FormControlLabel value="no" control={<Radio />} label="No" />
+                        </RadioGroup>
+
+                        {formData.associatedWithShelter === "yes" && (
+                            <FormControl fullWidth>
+                                <InputLabel>Select Shelter</InputLabel>
+                                <Select
+                                    name="selectedShelter"
+                                    value={formData.selectedShelter}
+                                    onChange={handleChange}
+                                >
+                                    {shelters.map((shelter) => (
+                                        <MenuItem key={shelter} value={shelter}>{shelter}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+
+                        <Typography variant="subtitle1">Do you have an HMS ID?</Typography>
+                        <RadioGroup row name="hasHMISID" value={formData.hasHMSID} onChange={handleChange}>
+                            <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                            <FormControlLabel value="no" control={<Radio />} label="No" />
+                        </RadioGroup>
+
+                        {formData.hasHMSID === "yes" && (
+                            <TextField label="HMIS ID" name="hmisId" value={formData.hmsId} onChange={handleChange} fullWidth />
+                        )}
+
+                        <TextField label="Age Range" name="age" value={formData.age} onChange={handleChange} placeholder="e.g. 18-24" fullWidth />
+                        <TextField label="Gender Identity" name="gender" value={formData.gender} onChange={handleChange} placeholder="e.g. Male, Female, Non-binary" fullWidth />
+                        <TextField label="Race/Ethnicity" name="ethnicity" value={formData.ethnicity} onChange={handleChange} placeholder="e.g. Black, Hispanic, White, etc." fullWidth />
+
+                        <FormControlLabel
+                            control={<Checkbox checked={formData.veteran} onChange={handleChange} name="veteran" />}
+                            label="Veteran"
                         />
-                        <TextField
-                            label="Email"
-                            variant="outlined"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            error={Boolean(errors.email)}
-                            helperText={errors.email}
-                            fullWidth
+                        <FormControlLabel
+                            control={<Checkbox checked={formData.disability} onChange={handleChange} name="disability" />}
+                            label="Person with Disabilities"
                         />
-                        <TextField
-                            label="Password"
-                            variant="outlined"
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            error={Boolean(errors.password)}
-                            helperText={errors.password}
-                            fullWidth
-                        />
+
                         <Button type="submit" variant="contained" color="primary" fullWidth>
                             Register
                         </Button>
