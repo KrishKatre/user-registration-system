@@ -193,6 +193,32 @@ app.post("/login", async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 });
+// Login Route (HMIS ID + Phone)
+app.post("/login-hmis", async (req, res) => {
+    try {
+        const { hmisId, phone } = req.body;
+
+        if (!hmisId || !phone) {
+            return res.status(400).json({ error: "HMIS ID and phone number are required." });
+        }
+
+        const user = await User.findOne({ hmisId, phone });
+        if (!user) {
+            return res.status(400).json({ error: "No matching user found." });
+        }
+
+        const token = jwt.sign(
+            { id: user._id, username: user.username },
+            SECRET_KEY,
+            { expiresIn: "1h" }
+        );
+
+        res.status(200).json({ message: "Login successful.", token });
+    } catch (err) {
+        console.error("Error during HMIS login:", err);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
 
 
 

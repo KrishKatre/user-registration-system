@@ -146,7 +146,7 @@ const RegistrationForm = () => {
                             <TextField label="HMIS ID" name="hmisId" value={formData.hmisId} onChange={handleChange} fullWidth />
                         )}
 
-                        <TextField label="Age Range" name="age" value={formData.age} onChange={handleChange} placeholder="e.g. 18-24" fullWidth />
+                        <TextField label="Age" name="age" value={formData.age} onChange={handleChange} placeholder="e.g. 24" fullWidth />
                         <TextField label="Gender Identity" name="gender" value={formData.gender} onChange={handleChange} placeholder="e.g. Male, Female, Non-binary" fullWidth />
                         <TextField label="Race/Ethnicity" name="ethnicity" value={formData.ethnicity} onChange={handleChange} placeholder="e.g. Black, Hispanic, White, etc." fullWidth />
 
