@@ -13,7 +13,8 @@ import {
     RadioGroup,
     Checkbox,
     Button,
-    Box
+    Box,
+    Alert
 } from "@mui/material";
 
 const shelters = ["Shelter A", "Shelter B", "Shelter C"];
@@ -27,13 +28,16 @@ const RegistrationForm = () => {
         associatedWithShelter: "no",
         selectedShelter: "",
         hasHMISID: "no",
-        hmsId: "",
+        hmisId: "",
         age: "",
         gender: "",
         ethnicity: "",
         veteran: false,
         disability: false
     });
+
+    const [serverError, setServerError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -43,10 +47,57 @@ const RegistrationForm = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Submitting:", formData);
-        // Add your registration logic here
+        setServerError("");
+        setSuccessMessage("");
+
+        const payload = {
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            shelterId: formData.associatedWithShelter === "yes" ? formData.selectedShelter : "",
+            hmisId: formData.hasHMISID === "yes" ? formData.hmisId : "",
+            age: formData.age,
+            gender: formData.gender,
+            dataLoadAlias: formData.ethnicity,
+            dataLoadSource: `${formData.veteran ? "Veteran" : ""}${formData.disability ? ", Disability" : ""}`,
+        };
+
+        try {
+            const response = await fetch("https://user-registration-backend-4.onrender.com/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setSuccessMessage("Registration successful! You can now log in.");
+                setFormData({
+                    username: "",
+                    email: "",
+                    password: "",
+                    phone: "",
+                    associatedWithShelter: "no",
+                    selectedShelter: "",
+                    hasHMISID: "no",
+                    hmisId: "",
+                    age: "",
+                    gender: "",
+                    ethnicity: "",
+                    veteran: false,
+                    disability: false
+                });
+            } else {
+                setServerError(data.error || "Registration failed.");
+            }
+        } catch (error) {
+            setServerError("Something went wrong. Please try again later.");
+        }
     };
 
     return (
@@ -55,6 +106,8 @@ const RegistrationForm = () => {
                 <Typography variant="h4" gutterBottom align="center">
                     Homeless Registration
                 </Typography>
+                {serverError && <Alert severity="error">{serverError}</Alert>}
+                {successMessage && <Alert severity="success">{successMessage}</Alert>}
                 <form onSubmit={handleSubmit}>
                     <Box display="flex" flexDirection="column" gap={2}>
                         <TextField label="Username" name="username" value={formData.username} onChange={handleChange} required />
@@ -83,14 +136,14 @@ const RegistrationForm = () => {
                             </FormControl>
                         )}
 
-                        <Typography variant="subtitle1">Do you have an HMS ID?</Typography>
-                        <RadioGroup row name="hasHMISID" value={formData.hasHMSID} onChange={handleChange}>
+                        <Typography variant="subtitle1">Do you have an HMIS ID?</Typography>
+                        <RadioGroup row name="hasHMISID" value={formData.hasHMISID} onChange={handleChange}>
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                             <FormControlLabel value="no" control={<Radio />} label="No" />
                         </RadioGroup>
 
-                        {formData.hasHMSID === "yes" && (
-                            <TextField label="HMIS ID" name="hmisId" value={formData.hmsId} onChange={handleChange} fullWidth />
+                        {formData.hasHMISID === "yes" && (
+                            <TextField label="HMIS ID" name="hmisId" value={formData.hmisId} onChange={handleChange} fullWidth />
                         )}
 
                         <TextField label="Age Range" name="age" value={formData.age} onChange={handleChange} placeholder="e.g. 18-24" fullWidth />
