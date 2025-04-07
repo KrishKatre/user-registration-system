@@ -51,7 +51,6 @@ const donorSchema = new mongoose.Schema({
     shelterAffiliation: { type: String },
     socialMediaHandle: { type: String },
     causesOfInterest: { type: [String] },
-    resumeUrl: { type: String }, // this can be a link to a file stored on a service like S3 or Cloudinary
     createdDate: { type: Date, default: Date.now }
 }, { collection: "donors" });
 
@@ -174,8 +173,7 @@ app.post("/register-donor", async (req, res) => {
             phone,
             shelterAffiliation,
             socialMediaHandle,
-            causesOfInterest,
-            resumeUrl
+            causesOfInterest
         } = req.body;
 
         if (!name || !email || !phone) {
@@ -193,8 +191,7 @@ app.post("/register-donor", async (req, res) => {
             phone,
             shelterAffiliation,
             socialMediaHandle,
-            causesOfInterest,
-            resumeUrl
+            causesOfInterest
         });
 
         await newDonor.save();

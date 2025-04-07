@@ -25,7 +25,6 @@ const DonorRegistrationForm = () => {
     phone: "",
     shelterAffiliation: "",
     socialMedia: "",
-    resume: null,
     causes: "",
     preferredContact: "email"
   });
@@ -33,39 +32,45 @@ const DonorRegistrationForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+};
 
-  const handleFileChange = (e) => {
-    setFormData((prev) => ({ ...prev, resume: e.target.files[0] }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formDataToSend = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      formDataToSend.append(key, value);
-    });
+    const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        shelterAffiliation: formData.shelterAffiliation,
+        socialMediaHandle: formData.socialMedia,
+        causesOfInterest: formData.causes,
+        preferredContact: formData.preferredContact,
+    };
 
     try {
-      const response = await fetch("https://user-registration-backend-4.onrender.com/register-donor", {
-        method: "POST",
-        body: formDataToSend,
-      });
+        const response = await fetch("https://user-registration-backend-4.onrender.com/register-donor", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        alert("Registration successful!");
-        // Clear form if needed
-      } else {
-        alert(data.error || "Registration failed.");
-      }
+        if (response.ok) {
+            alert("Registration successful!");
+        } else {
+            alert(data.error || "Registration failed.");
+        }
     } catch (err) {
-      console.error("Error registering donor:", err);
-      alert("Something went wrong.");
+        console.error("Error registering donor:", err);
+        alert("Something went wrong.");
     }
-  };
+};
+
 
   return (
     <Container maxWidth="sm">
@@ -100,11 +105,6 @@ const DonorRegistrationForm = () => {
                 <FormControlLabel value="social" control={<Radio />} label="Social Media" />
               </RadioGroup>
             </FormControl>
-
-            <Button variant="outlined" component="label">
-              Upload Resume
-              <input type="file" hidden onChange={handleFileChange} name="resume" />
-            </Button>
 
             <Button type="submit" variant="contained" color="primary">
               Register
