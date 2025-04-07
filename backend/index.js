@@ -275,6 +275,36 @@ app.post("/login-hmis", async (req, res) => {
     }
 });
 
+app.post("/login-donor", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required." });
+        }
+
+        const donor = await Donor.findOne({ email });
+        if (!donor) {
+            return res.status(400).json({ error: "Donor not found." });
+        }
+
+        const isMatch = await bcrypt.compare(password, donor.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid password." });
+        }
+
+        const token = jwt.sign(
+            { id: donor._id, email: donor.email, role: "donor" },
+            SECRET_KEY,
+            { expiresIn: "1h" }
+        );
+
+        res.status(200).json({ message: "Donor login successful.", token });
+    } catch (err) {
+        console.error("Error during donor login:", err);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
 
 
 // Protected Route Example

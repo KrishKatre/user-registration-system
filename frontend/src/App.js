@@ -5,6 +5,7 @@ import RegistrationForm from "./RegistrationForm";
 import RoleSelector from "./RoleSelector";
 import DonorRegistrationForm from "./DonorRegistrationForm";
 import LoginForm from "./LoginForm";
+import DonorLoginForm from "./DonorLoginForm";
 import ProductRequestForm from "./ProductRequestForm";
 import Dashboard from "./Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
@@ -55,6 +56,7 @@ const App = () => {
                 <Route path="/register" element={<RegistrationForm />} />
                 <Route path="/register-donor" element={<DonorRegistrationForm />} />
                 <Route path="/login" element={<LoginForm />} />
+                <Route path="/donor-login" element={<DonorLoginForm />} />
                 <Route
                     path="/product-request"
                     element={
