@@ -44,6 +44,18 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+const donorSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
+    shelterAffiliation: { type: String },
+    socialMediaHandle: { type: String },
+    causesOfInterest: { type: [String] },
+    resumeUrl: { type: String }, // this can be a link to a file stored on a service like S3 or Cloudinary
+    createdDate: { type: Date, default: Date.now }
+}, { collection: "donors" });
+
+const Donor = mongoose.model("Donor", donorSchema);
 
 const productRequestSchema = new mongoose.Schema({
     productUrl: { type: String, required: true },
@@ -154,6 +166,46 @@ app.post("/register", async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 });
+app.post("/register-donor", async (req, res) => {
+    try {
+        const {
+            name,
+            email,
+            phone,
+            shelterAffiliation,
+            socialMediaHandle,
+            causesOfInterest,
+            resumeUrl
+        } = req.body;
+
+        if (!name || !email || !phone) {
+            return res.status(400).json({ error: "Name, email, and phone are required." });
+        }
+
+        const existingDonor = await Donor.findOne({ email });
+        if (existingDonor) {
+            return res.status(400).json({ error: "Donor with this email already exists." });
+        }
+
+        const newDonor = new Donor({
+            name,
+            email,
+            phone,
+            shelterAffiliation,
+            socialMediaHandle,
+            causesOfInterest,
+            resumeUrl
+        });
+
+        await newDonor.save();
+        console.log("Donor registered:", newDonor);
+        res.status(201).json({ message: "Donor registered successfully." });
+    } catch (err) {
+        console.error("Error registering donor:", err);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
+
 
 // Login Route
 app.post("/login", async (req, res) => {
