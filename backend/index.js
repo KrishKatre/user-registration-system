@@ -48,9 +48,11 @@ const donorSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
+    password: { type: String, required: true },
     shelterAffiliation: { type: String },
     socialMediaHandle: { type: String },
     causesOfInterest: { type: [String] },
+    preferredContact: { type: String },
     createdDate: { type: Date, default: Date.now }
 }, { collection: "donors" });
 
@@ -171,27 +173,30 @@ app.post("/register-donor", async (req, res) => {
             name,
             email,
             phone,
+            password,
             shelterAffiliation,
             socialMediaHandle,
             causesOfInterest
         } = req.body;
 
-        if (!name || !email || !phone) {
-            return res.status(400).json({ error: "Name, email, and phone are required." });
+        if (!name || !email || !phone || !password) {
+            return res.status(400).json({ error: "Name, email, password, and phone are required." });
         }
 
         const existingDonor = await Donor.findOne({ email });
         if (existingDonor) {
             return res.status(400).json({ error: "Donor with this email already exists." });
         }
-
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newDonor = new Donor({
             name,
             email,
             phone,
+            password: hashedPassword,
             shelterAffiliation,
             socialMediaHandle,
-            causesOfInterest
+            causesOfInterest,
+            preferredContact
         });
 
         await newDonor.save();
