@@ -2,6 +2,8 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { AppBar, Toolbar, Button, Typography, Box } from "@mui/material";
 import RegistrationForm from "./RegistrationForm";
+import RoleSelector from "./RoleSelector";
+import DonorRegistrationForm from "./DonorRegistrationForm";
 import LoginForm from "./LoginForm";
 import ProductRequestForm from "./ProductRequestForm";
 import Dashboard from "./Dashboard";
@@ -49,7 +51,9 @@ const App = () => {
             </AppBar>
 
             <Routes>
-                <Route path="/" element={<RegistrationForm />} />
+                <Route path="/" element={<RoleSelector />} />
+                <Route path="/register" element={<RegistrationForm />} />
+                <Route path="/register-donor" element={<DonorRegistrationForm />} />
                 <Route path="/login" element={<LoginForm />} />
                 <Route
                     path="/product-request"
