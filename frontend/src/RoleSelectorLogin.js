@@ -8,9 +8,9 @@ const LoginRoleSelector = () => {
 
     const handleSubmit = () => {
         if (role === "donor") {
-            navigate("/login");
+            navigate("/donor-login");
         } else {
-            navigate("/login-unhoused");
+            navigate("/login/unhoused");
         }
     };
 
