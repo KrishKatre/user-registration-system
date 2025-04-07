@@ -176,7 +176,8 @@ app.post("/register-donor", async (req, res) => {
             password,
             shelterAffiliation,
             socialMediaHandle,
-            causesOfInterest
+            causesOfInterest,
+            preferredContact
         } = req.body;
 
         if (!name || !email || !phone || !password) {
