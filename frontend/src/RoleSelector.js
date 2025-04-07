@@ -8,7 +8,7 @@ const RoleSelector = () => {
 
     const handleSelect = (role) => {
         if (role === "unhoused") {
-            navigate("/register-unhoused");
+            navigate("/register");
         } else if (role === "donor") {
             navigate("/register-donor");
         }
